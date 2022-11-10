@@ -21,13 +21,14 @@ class Pynopticon:
     self.queue = ClearingQueue(maxsize=record_frames)
     self.stopped = False
     self.t = None
+    self.cap = None
 
     self.width = width
     self.height = height
 
   def start(self):
     """ Start the video capture. """
-    cap = cv2.VideoCapture(0)
+    self.cap = cv2.VideoCapture(0)
 
     def _record():
       while not self.stopped:
@@ -46,6 +47,7 @@ class Pynopticon:
     """ Stop without saving. """
     self.stopped = True
     self.t.join()
+    self.cap.release()
 
   def reset(self):
     """ Reset queue. """
