@@ -16,7 +16,7 @@ class ClearingQueue(queue.Queue):
 
 
 class Pynopticon:
-  def __init__(self, record_frames=100, width=640, height=480):
+  def __init__(self, record_frames=100, width=640, height=480, new_frame_callback=None):
     self.record_frames = record_frames
     self.queue = ClearingQueue(maxsize=record_frames)
     self.stopped = False
@@ -26,18 +26,22 @@ class Pynopticon:
     self.width = width
     self.height = height
 
+    self.new_frame_callback = new_frame_callback
+
   def start(self):
     """ Start the video capture. """
     self.cap = cv2.VideoCapture(0)
 
     def _record():
       while not self.stopped:
-        ret, frame = cap.read()
+        ret, frame = self.cap.read()
         if not ret:
           break
 
         frame = cv2.resize(frame, (self.width, self.height))
         self.queue.put(frame)
+        if self.new_frame_callback is not None:
+          self.new_frame_callback(frame)
 
     self.stopped = False
     self.t = threading.Thread(target=_record)
@@ -51,7 +55,7 @@ class Pynopticon:
 
   def reset(self):
     """ Reset queue. """
-    self.queue = ClearingQueue(maxsize=record_frames)
+    self.queue = ClearingQueue(maxsize=self.record_frames)
 
   def save(self, outname: str = "output.avi", fps: int = 15):
     """ Stop and save. """
@@ -67,4 +71,3 @@ class Pynopticon:
         break
 
     out.release()
-
