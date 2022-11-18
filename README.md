@@ -37,10 +37,18 @@ python -m pynopticon
 CLIENT_SECRETS_FILE="client_secrets.json" python -m pynopticon
 ```
 
+**api:**
 - `/`: visit in browser for live streaming
 - `POST /start`: same as `p.start()` (after stop, server auto starts pynopticon instance)
 - `POST /save`: same as `p.save()`. Set `?upload=true` to upload to YouTube. Only works if `CLIENT_SECRETS_FILE` is set.
 - `POST /stop`: same as `p.stop()`
+
+**config:**
+- `RECORD_FRAMES`: number of frames to record before an event. Default: `100`
+- `CLIENT_SECRETS_FILE`: path to `client_secrets.json` file. Default: `None`
+- `PORT`: port to run server on. Default: `4004`
+- `HOST`: host to run server on. Default: `0.0.0.0`
+- `CAM`: camera index. Default: `0`
 
 https://en.wikipedia.org/wiki/Panopticon
 

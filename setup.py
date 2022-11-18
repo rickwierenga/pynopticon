@@ -4,7 +4,7 @@ with open("README.md", "r") as f:
   long_description = f.read()
 
 setup(name='Pynopticon',
-      version='0.0.3',
+      version='0.0.5',
       description='Pynopticon',
       long_description=long_description,
       long_description_content_type='text/markdown',

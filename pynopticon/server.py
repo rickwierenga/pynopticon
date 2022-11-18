@@ -14,6 +14,7 @@ if os.environ.get("CLIENT_SECRETS_FILE"):
   youtube = get_authenticated_service()
 else:
   youtube = None
+
 app = Flask(__name__)
 
 
@@ -21,7 +22,10 @@ def new_frame_handler(frame):
   if q is not None:
     q.put(frame)
 
-p = Pynopticon(new_frame_callback=new_frame_handler, cam=0, youtube=youtube)
+cam = int(os.environ.get("CAM", 0))
+num_frames = int(os.environ.get("RECORD_FRAMES", 100))
+
+p = Pynopticon(new_frame_callback=new_frame_handler, cam=cam, record_frames=num_frames, youtube=youtube)
 
 def start_receiving():
   global q
@@ -78,8 +82,10 @@ def start():
   return jsonify({"status": "ok"})
 
 def main():
+  host = os.environ.get("HOST", "0.0.0.0")
+  port = int(os.environ.get("PORT", 4004))
   p.start()
-  app.run(port=4004)
+  app.run(host=host, port=port)
 
 if __name__ == "__main__":
   main()
