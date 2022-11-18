@@ -12,5 +12,10 @@ setup(name='Pynopticon',
       author_email='rick_wierenga@icloud.com',
       url='https://www.github.com/rickwierenga/pynopticon/',
       packages=['pynopticon'],
+      entry_points={
+            'console_scripts': [
+                  'pynopticon-server = pynopticon.server:main'
+            ]   
+      } 
    )
 
