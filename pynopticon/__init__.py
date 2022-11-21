@@ -5,6 +5,7 @@ import threading
 import cv2
 
 from pynopticon.upload_video import initialize_upload, get_authenticated_service
+from pynopticon.mailer import send_email
 
 
 class ClearingQueue(queue.Queue):
@@ -19,7 +20,7 @@ class ClearingQueue(queue.Queue):
 
 
 class Pynopticon:
-  def __init__(self, record_frames=100, width=640, height=480, cam=0, new_frame_callback=None, youtube=None):
+  def __init__(self, record_frames=100, width=640, height=480, cam=0, new_frame_callback=None, youtube=None, sg=None):
     self.record_frames = record_frames
     self.queue = ClearingQueue(maxsize=record_frames)
     self.stopped = False
@@ -32,6 +33,7 @@ class Pynopticon:
 
     self.new_frame_callback = new_frame_callback
     self.youtube = youtube
+    self.sg = sg
 
   def start(self):
     """ Start the video capture. """
@@ -62,7 +64,7 @@ class Pynopticon:
     """ Reset queue. """
     self.queue = ClearingQueue(maxsize=self.record_frames)
 
-  def save(self, outname: str = "output.avi", fps: int = 15, upload=False, title=None, description=None):
+  def save(self, outname: str = "output.avi", fps: int = 15, upload=False, title=None, description=None, mail_to=None, mail_from=None):
     """ Stop and save. """
     self.stop()
 
@@ -90,8 +92,23 @@ class Pynopticon:
           tags=[],
           privacyStatus="private",
           file=outname)
-        return vidid
       except HttpError as e: 
-        return "An HTTP error %d occurred when uploading: %s" % (e.resp.status, e.content)
+        return f"An HTTP error {e.resp.status} occurred when uploading: {e.content}"
+      
+      if vidid is None:
+        return None
+      
+      if mail_to is not None:
+        assert self.sg is not None, "Sendgrid client not initialized"
+        assert mail_from is not None, "Mail from not specified"
+
+        send_email(
+          self.sg,
+          to_email=mail_to,
+          from_email=mail_from,
+          subject="Pynopticon recorded something!",
+          text=f"Video uploaded to https://youtu.be/{vidid}")
+
+      return vidid
     
     return None

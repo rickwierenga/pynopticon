@@ -7,13 +7,25 @@ import cv2
 from flask import Flask, Response, request, jsonify
 
 from pynopticon import Pynopticon
-from pynopticon.upload_video import get_authenticated_service, initialize_upload
+from pynopticon.upload_video import get_authenticated_service
 
 q = None
 if os.environ.get("CLIENT_SECRETS_FILE"):
   youtube = get_authenticated_service()
 else:
   youtube = None
+
+sendgrid_api_key = os.environ.get("SENDGRID_API_KEY")
+sendgrid_from_email = os.environ.get("SENDGRID_FROM_EMAIL")
+sendgrid_to_email = os.environ.get("SENDGRID_TO_EMAIL")
+sg = None
+if any(sendgrid_api_key, sendgrid_from_email, sendgrid_to_email):
+  if all(sendgrid_api_key, sendgrid_from_email, sendgrid_to_email):
+    import sendgrid
+    import sendgrid.helpers.mail
+    sg = sendgrid.SendGridAPIClient(api_key=sendgrid_api_key)
+  else:
+    raise Exception("Must specify all or none of SENDGRID_API_KEY, SENDGRID_FROM_EMAIL, SENDGRID_TO_EMAIL")
 
 app = Flask(__name__)
 
@@ -63,14 +75,23 @@ def stop():
 def save():
   time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
   fn = time + ".avi"
-  upload = request.args.get("upload")
   try:
-    upload = (upload == "true")
-    vidid = p.save(outname=fn, upload=upload)
+    upload = (request.args.get("upload") == "true")
+    email = (request.args.get("email") == "true")
+
+    vidid = p.save(
+      outname=fn,
+      upload=upload,
+      mail_to=(sendgrid_to_email if email else None),
+      mail_from=(sendgrid_from_email if email else None),
+    )
+
     if upload:
       if vidid is None:
         return jsonify({"status": "failed", "message": "Upload failed"})
-      return jsonify({"status": "ok", "video_url": f"https://youtu.be/{vidid}"})
+
+      vidurl = "https://www.youtube.com/watch?v=" + vidid
+      return jsonify({"status": "ok", "video_url": vidurl})
   except HttpError as e: 
     return "An HTTP error %d occurred when uploading: %s" % (e.resp.status, e.content)
 

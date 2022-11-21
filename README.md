@@ -8,26 +8,61 @@ Pynopticon is a video recording utility that saves the last `n` frames before an
 import time
 from pynopticon import Pynopticon
 
-p = Pynopticon(record_frames=100)
+p = Pynopticon(
+  record_frames=100,
+  width=640,
+  height=480,
+  cam=0
+)
 p.start()
 time.sleep(10)
-p.save()
+p.save(
+  outname="my_video.mp4",
+  fps=30,
+)
 ```
 
-Optionally, you can upload the video to YouTube. This requires a `client_secrets.json` file, see instructions [here](https://developers.google.com/youtube/v3/guides/uploading_a_video#Requirements).
+## Features
+
+#### YouTube Upload
+
+Optionally, you can _upload the video to YouTube_. This requires a `client_secrets.json` file, see instructions [here](https://developers.google.com/youtube/v3/guides/uploading_a_video#Requirements).
 
 ```python
 import time
 from pynopticon import Pynopticon, get_authenticated_service
 
-youtube = get_authenticated_service(client_secrets_file="./client_secrets.json")
+youtube = get_authenticated_service(client_secrets_file="./client_secrets.json") # initialize youtube
 p = Pynopticon(record_frames=100, youtube=youtube)
 p.start()
 time.sleep(10)
 p.save(upload=True, title="My Video", description="My Description")
 ```
 
-There is also a server that exposes an http api, in case if you want to run Pynopticon on an external device.
+#### Email Notification
+
+If uploading to YouTube, you can also _send an email_ when a video is saved.
+
+```python
+import time
+from pynopticon import Pynopticon, get_authenticated_service
+import sendgrid
+
+sg = sendgrid.SendGridAPIClient(api_key=sendgrid_api_key) # initialize sendgrid
+youtube = get_authenticated_service(client_secrets_file="./client_secrets.json")
+
+p = Pynopticon(record_frames=100, youtube=youtube, sg=sg)
+p.start()
+time.sleep(10)
+p.save(
+  upload=True,
+  title="My Video", description="My Description",
+  to_email="me@example.com", from_email="you@sendgrid.com")
+```
+
+#### HTTP API
+
+There is also a server that exposes an _http api_, in case if you want to run Pynopticon on an external device.
 
 ```bash
 # without upload:
@@ -45,12 +80,17 @@ CLIENT_SECRETS_FILE="client_secrets.json" python -m pynopticon
 
 **config:**
 - `RECORD_FRAMES`: number of frames to record before an event. Default: `100`
-- `CLIENT_SECRETS_FILE`: path to `client_secrets.json` file. Default: `None`
 - `PORT`: port to run server on. Default: `4004`
 - `HOST`: host to run server on. Default: `0.0.0.0`
 - `CAM`: camera index. Default: `0`
 
-https://en.wikipedia.org/wiki/Panopticon
+If you want to upload to YouTube, you should set the following environment variables:
+- `CLIENT_SECRETS_FILE`: path to `client_secrets.json` file. Default: `None`
+
+If all three of the following are set, the server will send an email when a video is uploaded to YT. If just some are set, an error will be raised.
+- `SENDGRID_API_KEY`: sendgrid api key. Default: `None`
+- `SENDGRID_FROM`: sendgrid from email. Default: `None`
+- `SENDGRID_TO`: sendgrid to email. Default: `None`
 
 ## Installation
 
@@ -69,4 +109,3 @@ git clone https://github.com/rickwierenga/pynopticon
 ```
 
 _Developed for the Sculpting Evolution Group at the MIT Media Lab_
-
