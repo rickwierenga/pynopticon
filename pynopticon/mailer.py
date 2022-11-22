@@ -5,9 +5,9 @@ import sendgrid.helpers.mail
 
 sendgrid_api_key = os.environ["SENDGRID_API_KEY"]
 
-def send_email(sg, to_email, from_email, subject, text):
+def send_email(sg, to_emails, from_email, subject, text):
   from_email = sendgrid.helpers.mail.Email(from_email)
-  to_email = sendgrid.helpers.mail.To(to_email)
+  to_email = [sendgrid.helpers.mail.To(to) for to in to_emails]
   content = sendgrid.helpers.mail.Content("text/plain", text)
   mail = sendgrid.helpers.mail.Mail(from_email, to_email, subject, content)
   response = sg.client.mail.send.post(request_body=mail.get())

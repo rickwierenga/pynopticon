@@ -57,7 +57,7 @@ time.sleep(10)
 p.save(
   upload=True,
   title="My Video", description="My Description",
-  to_email="me@example.com", from_email="you@sendgrid.com")
+  to_email=["me@example.com", "other@example.com"],from_email="you@sendgrid.com")
 ```
 
 #### HTTP API
@@ -75,7 +75,9 @@ CLIENT_SECRETS_FILE="client_secrets.json" python -m pynopticon
 **api:**
 - `/`: visit in browser for live streaming
 - `POST /start`: same as `p.start()` (after stop, server auto starts pynopticon instance)
-- `POST /save`: same as `p.save()`. Set `?upload=true` to upload to YouTube. Only works if `CLIENT_SECRETS_FILE` is set.
+- `POST /save`: same as `p.save()`.
+  - Set `?upload=true` to upload to YouTube. Only works if `CLIENT_SECRETS_FILE` is set.
+  - Set `?emails=one@example.com,two@example.com` to send an email to the given emails. Only works if `SENDGRID_API_KEY`, `SENDGRID_FROM`, and `SENDGRID_TO` are set, and `upload=true`.
 - `POST /stop`: same as `p.stop()`
 
 **config:**
@@ -83,6 +85,8 @@ CLIENT_SECRETS_FILE="client_secrets.json" python -m pynopticon
 - `PORT`: port to run server on. Default: `4004`
 - `HOST`: host to run server on. Default: `0.0.0.0`
 - `CAM`: camera index. Default: `0`
+- `WIDTH`: width of camera. Default: `640`
+- `HEIGHT`: height of camera. Default: `480`
 
 If you want to upload to YouTube, you should set the following environment variables:
 - `CLIENT_SECRETS_FILE`: path to `client_secrets.json` file. Default: `None`
@@ -90,7 +94,10 @@ If you want to upload to YouTube, you should set the following environment varia
 If all three of the following are set, the server will send an email when a video is uploaded to YT. If just some are set, an error will be raised.
 - `SENDGRID_API_KEY`: sendgrid api key. Default: `None`
 - `SENDGRID_FROM`: sendgrid from email. Default: `None`
-- `SENDGRID_TO`: sendgrid to email. Default: `None`
+
+##### Live Streaming
+
+See [HTTP API](#http-api) section above.
 
 ## Installation
 

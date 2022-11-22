@@ -2,6 +2,7 @@ import datetime
 import queue
 import threading
 
+from apiclient.errors import HttpError
 import cv2
 
 from pynopticon.upload_video import initialize_upload, get_authenticated_service
@@ -64,7 +65,7 @@ class Pynopticon:
     """ Reset queue. """
     self.queue = ClearingQueue(maxsize=self.record_frames)
 
-  def save(self, outname: str = "output.avi", fps: int = 15, upload=False, title=None, description=None, mail_to=None, mail_from=None):
+  def save(self, outname: str = "output.avi", fps: int = 15, upload=False, title=None, description=None, mail_to:list=None, mail_from=None):
     """ Stop and save. """
     self.stop()
 
@@ -104,7 +105,7 @@ class Pynopticon:
 
         send_email(
           self.sg,
-          to_email=mail_to,
+          to_emails=mail_to,
           from_email=mail_from,
           subject="Pynopticon recorded something!",
           text=f"Video uploaded to https://youtu.be/{vidid}")

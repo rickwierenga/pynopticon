@@ -1,6 +1,7 @@
 import datetime
 import os
 import queue
+from urllib.error import HTTPError
 
 from apiclient.errors import HttpError
 import cv2
@@ -11,21 +12,20 @@ from pynopticon.upload_video import get_authenticated_service
 
 q = None
 if os.environ.get("CLIENT_SECRETS_FILE"):
-  youtube = get_authenticated_service()
+  youtube = get_authenticated_service(os.environ.get("CLIENT_SECRETS_FILE"))
 else:
   youtube = None
 
 sendgrid_api_key = os.environ.get("SENDGRID_API_KEY")
 sendgrid_from_email = os.environ.get("SENDGRID_FROM_EMAIL")
-sendgrid_to_email = os.environ.get("SENDGRID_TO_EMAIL")
 sg = None
-if any(sendgrid_api_key, sendgrid_from_email, sendgrid_to_email):
-  if all(sendgrid_api_key, sendgrid_from_email, sendgrid_to_email):
+if any([sendgrid_api_key, sendgrid_from_email]):
+  if all([sendgrid_api_key, sendgrid_from_email]):
     import sendgrid
     import sendgrid.helpers.mail
     sg = sendgrid.SendGridAPIClient(api_key=sendgrid_api_key)
   else:
-    raise Exception("Must specify all or none of SENDGRID_API_KEY, SENDGRID_FROM_EMAIL, SENDGRID_TO_EMAIL")
+    raise Exception("Must specify all or none of SENDGRID_API_KEY, SENDGRID_FROM_EMAIL")
 
 app = Flask(__name__)
 
@@ -36,8 +36,17 @@ def new_frame_handler(frame):
 
 cam = int(os.environ.get("CAM", 0))
 num_frames = int(os.environ.get("RECORD_FRAMES", 100))
+width = int(os.environ.get("WIDTH", 640))
+height = int(os.environ.get("HEIGHT", 480))
 
-p = Pynopticon(new_frame_callback=new_frame_handler, cam=cam, record_frames=num_frames, youtube=youtube)
+p = Pynopticon(
+  width=width,
+  height=height,
+  new_frame_callback=new_frame_handler,
+  cam=cam,
+  record_frames=num_frames,
+  youtube=youtube,
+  sg=sg)
 
 def start_receiving():
   global q
@@ -77,14 +86,20 @@ def save():
   fn = time + ".avi"
   try:
     upload = (request.args.get("upload") == "true")
-    email = (request.args.get("email") == "true")
+    emails = request.args.get("email")
+    if emails is not None:
+      emails = emails.split(",")
+    do_email = (emails is not None) and (len(emails) > 0)
 
-    vidid = p.save(
-      outname=fn,
-      upload=upload,
-      mail_to=(sendgrid_to_email if email else None),
-      mail_from=(sendgrid_from_email if email else None),
-    )
+    try:
+      vidid = p.save(
+        outname=fn,
+        upload=upload,
+        mail_to=[emails] if do_email else None,
+        mail_from=(sendgrid_from_email if do_email else None),
+      )
+    except HTTPError as e:
+      return jsonify({"status": "failed", "message": "upload or mailing failed: " + str(e)})
 
     if upload:
       if vidid is None:
