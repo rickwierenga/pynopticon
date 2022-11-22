@@ -10,7 +10,8 @@ from flask import Flask, Response, request, jsonify
 from pynopticon import Pynopticon
 from pynopticon.upload_video import get_authenticated_service
 
-q = None
+qs = [] # list of frame queues
+
 if os.environ.get("CLIENT_SECRETS_FILE"):
   youtube = get_authenticated_service(os.environ.get("CLIENT_SECRETS_FILE"))
 else:
@@ -31,7 +32,7 @@ app = Flask(__name__)
 
 
 def new_frame_handler(frame):
-  if q is not None:
+  for q in qs:
     q.put(frame)
 
 cam = int(os.environ.get("CAM", 0))
@@ -48,17 +49,12 @@ p = Pynopticon(
   youtube=youtube,
   sg=sg)
 
-def start_receiving():
-  global q
-  q = queue.Queue()
-
-def stop_receiving():
-  global q
-  q = None
-
 def generate():
   try:
-    start_receiving()
+    # create a queue for this client
+    q = queue.Queue()
+    qs.append(q)
+
     while True:
       frame = q.get()
       ret, buffer = cv2.imencode(".jpg", frame)
@@ -68,7 +64,7 @@ def generate():
       yield (b'--frame\r\n'
              b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
   except GeneratorExit:
-    stop_receiving()
+    qs.remove(q)
 
 
 @app.route('/')

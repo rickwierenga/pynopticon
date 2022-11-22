@@ -73,12 +73,12 @@ CLIENT_SECRETS_FILE="client_secrets.json" python -m pynopticon
 ```
 
 **api:**
-- `/`: visit in browser for live streaming
-- `POST /start`: same as `p.start()` (after stop, server auto starts pynopticon instance)
+- `/`: visit in browser for live streaming.
+- `POST /start`: same as `p.start()` (after stop, server auto starts pynopticon instance).
 - `POST /save`: same as `p.save()`.
   - Set `?upload=true` to upload to YouTube. Only works if `CLIENT_SECRETS_FILE` is set.
-  - Set `?emails=one@example.com,two@example.com` to send an email to the given emails. Only works if `SENDGRID_API_KEY`, `SENDGRID_FROM`, and `SENDGRID_TO` are set, and `upload=true`.
-- `POST /stop`: same as `p.stop()`
+  - Set `?emails=one@example.com,two@example.com` to send an email to the given emails. Only works if `SENDGRID_API_KEY`, `SENDGRID_FROM` are set, and `upload=true`.
+- `POST /stop`: same as `p.stop()`.
 
 **config:**
 - `RECORD_FRAMES`: number of frames to record before an event. Default: `100`
