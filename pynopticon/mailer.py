@@ -1,9 +1,6 @@
-import os
-
 import sendgrid
 import sendgrid.helpers.mail
 
-sendgrid_api_key = os.environ["SENDGRID_API_KEY"]
 
 def send_email(sg, to_emails, from_email, subject, text):
   from_email = sendgrid.helpers.mail.Email(from_email)
