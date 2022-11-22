@@ -2,6 +2,7 @@ import datetime
 import queue
 import threading
 
+from apiclient.errors import HttpError
 import cv2
 
 from pynopticon.upload_video import initialize_upload, get_authenticated_service

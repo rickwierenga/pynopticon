@@ -1,6 +1,7 @@
 import datetime
 import os
 import queue
+from urllib.error import HTTPError
 
 from apiclient.errors import HttpError
 import cv2
@@ -90,12 +91,15 @@ def save():
       emails = emails.split(",")
     do_email = (emails is not None) and (len(emails) > 0)
 
-    vidid = p.save(
-      outname=fn,
-      upload=upload,
-      mail_to=[emails] if do_email else None,
-      mail_from=(sendgrid_from_email if do_email else None),
-    )
+    try:
+      vidid = p.save(
+        outname=fn,
+        upload=upload,
+        mail_to=[emails] if do_email else None,
+        mail_from=(sendgrid_from_email if do_email else None),
+      )
+    except HTTPError as e:
+      return jsonify({"status": "failed", "message": "upload or mailing failed: " + str(e)})
 
     if upload:
       if vidid is None:
@@ -121,3 +125,4 @@ def main():
 
 if __name__ == "__main__":
   main()
+
