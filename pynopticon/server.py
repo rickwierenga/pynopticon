@@ -5,7 +5,7 @@ from urllib.error import HTTPError
 
 from apiclient.errors import HttpError
 import cv2
-from flask import Flask, Response, request, jsonify
+from flask import Flask, Response, request, jsonify, current_app
 
 from pynopticon import Pynopticon
 from pynopticon.upload_video import get_authenticated_service
@@ -40,20 +40,12 @@ num_frames = int(os.environ.get("RECORD_FRAMES", 100))
 width = int(os.environ.get("WIDTH", 640))
 height = int(os.environ.get("HEIGHT", 480))
 
-p = Pynopticon(
-  width=width,
-  height=height,
-  new_frame_callback=new_frame_handler,
-  cam=cam,
-  record_frames=num_frames,
-  youtube=youtube,
-  sg=sg)
-
-def generate():
+def generate(p):
   try:
     # create a queue for this client
-    q = queue.Queue()
+    q = queue.Queue(maxsize=p.record_frames)
     qs.append(q)
+    print("open queue: ", len(qs))
 
     while True:
       frame = q.get()
@@ -63,13 +55,16 @@ def generate():
       frame = buffer.tobytes()
       yield (b'--frame\r\n'
              b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-  except GeneratorExit:
+  except Exception as e:
+    print("e", e)
+  finally:
     qs.remove(q)
+    print("down to ", len(qs))
 
 
 @app.route('/')
 def index():
-  return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
+  return Response(generate(current_app.p), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/stop', methods=["POST"])
 def stop():
@@ -116,8 +111,16 @@ def start():
 def main():
   host = os.environ.get("HOST", "0.0.0.0")
   port = int(os.environ.get("PORT", 4004))
-  p.start()
-  app.run(host=host, port=port)
+  app.p = Pynopticon(
+    width=width,
+    height=height,
+    new_frame_callback=new_frame_handler,
+    cam=cam,
+    record_frames=num_frames,
+    youtube=youtube,
+    sg=sg)
+  app.p.start()
+  app.run(host=host, port=port, threaded=True)
 
 if __name__ == "__main__":
   main()

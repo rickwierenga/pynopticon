@@ -1,5 +1,6 @@
 import datetime
 import queue
+import time
 import threading
 
 from apiclient.errors import HttpError
@@ -7,6 +8,10 @@ import cv2
 
 from pynopticon.upload_video import initialize_upload, get_authenticated_service
 from pynopticon.mailer import send_email
+
+
+MAX_RETRIES = 5
+FPS = 10
 
 
 class ClearingQueue(queue.Queue):
@@ -38,28 +43,41 @@ class Pynopticon:
 
   def start(self):
     """ Start the video capture. """
-    self.cap = cv2.VideoCapture(self.cam)
 
     def _record():
+      print("opening camera", self.cam)
+      self.cap = cv2.VideoCapture(f"/dev/video{self.cam}", cv2.CAP_V4L2)
+      self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
+      print("opened camera")
+      retries = 0
       while not self.stopped:
         ret, frame = self.cap.read()
-        if not ret:
-          break
+        time.sleep(1 / FPS)
+        if not ret or not self.cap.isOpened():
+          if retries < MAX_RETRIES:
+            self.cap.release()
+            self.cap = cv2.VideoCapture(self.cam)
+            self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
+            retries += 1
+            continue
+          else:
+            break
 
         frame = cv2.resize(frame, (self.width, self.height))
         self.queue.put(frame)
         if self.new_frame_callback is not None:
           self.new_frame_callback(frame)
+      print("! cam exit: ", self.cam)
+      self.cap.release()
 
     self.stopped = False
-    self.t = threading.Thread(target=_record)
+    self.t = threading.Thread(target=_record, daemon=True)
     self.t.start()
 
   def stop(self):
     """ Stop without saving. """
     self.stopped = True
     self.t.join()
-    self.cap.release()
 
   def reset(self):
     """ Reset queue. """
