@@ -2,7 +2,9 @@
 
 # Pynopticon
 
-Pynopticon is a video recording utility that saves the last `n` frames before an interesting event to disk. This is useful if you just want to record the frames leading up to an interesting event.
+Pynopticon is a video recording utility that saves the last `n` frames before an interesting event to disk. This is an efficient way to monitor and record systems where you care only about certain moments, and only have information ex post facto (like a crash on a robotic system).
+
+Using the [server](#http-api) you can always see a live video feed.
 
 ```python
 import time
@@ -65,15 +67,15 @@ p.save(
 There is also a server that exposes an _http api_, in case if you want to run Pynopticon on an external device.
 
 ```bash
-# without upload:
+# without YouTube upload:
 python -m pynopticon
 
-# with upload:
+# with YouTube upload:
 CLIENT_SECRETS_FILE="client_secrets.json" python -m pynopticon
 ```
 
 **api:**
-- `/`: visit in browser for live streaming.
+- `/`: visit in browser for **live streaming**.
 - `POST /start`: same as `p.start()` (after stop, server auto starts pynopticon instance).
 - `POST /save`: same as `p.save()`.
   - Set `?upload=true` to upload to YouTube. Only works if `CLIENT_SECRETS_FILE` is set.
@@ -114,5 +116,11 @@ pip install pynopticon
 ```sh
 git clone https://github.com/rickwierenga/pynopticon
 ```
+
+## Usage
+
+Plug in a webcam/camera to your computer. We use [this one ($50)](https://www.amazon.com/dp/B01BGBJ8Y0) in lab, but you should be able to use any USB webcam / camera.
+
+Tip: You can use `v4l2-ctl --list-devices` on Linux to find the value you need to pass to `CAM`. This is particularly useful if you're going to be running multiple instances of the Pynopticon.
 
 _Developed for the Sculpting Evolution Group at the MIT Media Lab_
