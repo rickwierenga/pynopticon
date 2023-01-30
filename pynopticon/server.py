@@ -68,7 +68,7 @@ def index():
 
 @app.route('/stop', methods=["POST"])
 def stop():
-  p.stop()
+  current_app.p.stop()
   return jsonify({"status": "ok"})
 
 @app.route('/save', methods=["POST"])
@@ -83,7 +83,7 @@ def save():
     do_email = (emails is not None) and (len(emails) > 0)
 
     try:
-      vidid = p.save(
+      vidid = current_app.p.save(
         outname=fn,
         upload=upload,
         mail_to=[emails] if do_email else None,
@@ -105,7 +105,7 @@ def save():
 
 @app.route('/start', methods=["POST"])
 def start():
-  p.start()
+  current_app.p.start()
   return jsonify({"status": "ok"})
 
 def main():

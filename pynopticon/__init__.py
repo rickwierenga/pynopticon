@@ -44,6 +44,9 @@ class Pynopticon:
   def start(self):
     """ Start the video capture. """
 
+    if self.t is not None:
+      raise RuntimeError("already started, call stop first")
+
     def _record():
       print("opening camera", self.cam)
       self.cap = cv2.VideoCapture(f"/dev/video{self.cam}", cv2.CAP_V4L2)
@@ -76,8 +79,10 @@ class Pynopticon:
 
   def stop(self):
     """ Stop without saving. """
+    print("stopping")
     self.stopped = True
     self.t.join()
+    self.t = None
 
   def reset(self):
     """ Reset queue. """
