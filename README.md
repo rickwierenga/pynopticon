@@ -117,10 +117,14 @@ pip install pynopticon
 git clone https://github.com/rickwierenga/pynopticon
 ```
 
-## Usage
+### Cameras
 
 Plug in a webcam/camera to your computer. We use [this one ($50)](https://www.amazon.com/dp/B01BGBJ8Y0) in lab, but you should be able to use any USB webcam / camera.
 
 Tip: You can use `v4l2-ctl --list-devices` on Linux to find the value you need to pass to `CAM`. This is particularly useful if you're going to be running multiple instances of the Pynopticon.
+
+## Informative
+
+![Schematic of Pynopticon](./.github/figure.png)
 
 _Developed for the Sculpting Evolution Group at the MIT Media Lab_
