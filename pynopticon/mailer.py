@@ -12,3 +12,4 @@ def send_email(sg, to_emails, from_email, subject, text):
   if response.status_code not in range(200, 203):
     print("Error sending email")
     print(response.status_code)
+

@@ -15,13 +15,18 @@ setup(name="Pynopticon",
   url="https://www.github.com/rickwierenga/pynopticon/",
   packages=["pynopticon"],
   install_requires=[
-    "google-api-python-client",
-    "apiclient",
-    "httplib2",
     "opencv-python",
-    "oauth2client",
-    "flask"
   ],
+  extras_require={
+    "server": ["flask"],
+    "yt": [
+      "google-api-python-client",
+      "apiclient",
+      "httplib2",
+      "oauth2client",
+    ],
+    "mail": ["sendgrid"]
+  },
   entry_points={
     "console_scripts": [
         "pynopticon-server = pynopticon.server:main"

@@ -108,7 +108,11 @@ See [HTTP API](#http-api) section above.
 - from pip
 
 ```sh
-pip install pynopticon
+pip install pynopticon            # basic
+pip install 'pynopticon[all]'     # all
+pip install 'pynopticon[mail]'    # mail
+pip install 'pynopticon[yt]'      # yt
+pip install 'pynopticon[server]'  # server
 ```
 
 - from source
