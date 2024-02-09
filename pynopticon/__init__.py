@@ -149,4 +149,3 @@ class Pynopticon:
       return vidid
     
     return None
-

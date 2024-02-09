@@ -8,11 +8,15 @@ import cv2
 from flask import Flask, Response, request, jsonify, current_app
 
 from pynopticon import Pynopticon
-from pynopticon.upload_video import get_authenticated_service
+try:
+  from pynopticon.upload_video import get_authenticated_service
+  USE_YT = True
+except ImportError:
+  USE_YT = False
 
 qs = [] # list of frame queues
 
-if os.environ.get("CLIENT_SECRETS_FILE"):
+if USE_YT and os.environ.get("CLIENT_SECRETS_FILE"):
   youtube = get_authenticated_service(os.environ.get("CLIENT_SECRETS_FILE"))
 else:
   youtube = None
@@ -124,4 +128,3 @@ def main():
 
 if __name__ == "__main__":
   main()
-
