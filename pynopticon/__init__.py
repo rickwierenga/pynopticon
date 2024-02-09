@@ -3,11 +3,20 @@ import queue
 import time
 import threading
 
-from apiclient.errors import HttpError
 import cv2
 
-from pynopticon.upload_video import initialize_upload, get_authenticated_service
-from pynopticon.mailer import send_email
+try:
+  from apiclient.errors import HttpError
+  from pynopticon.upload_video import initialize_upload, get_authenticated_service
+  USE_YT = True
+except ImportError:
+  USE_YT = False
+
+try:
+  from pynopticon.mailer import send_email
+  USE_MAIL = True
+except ImportError:
+  USE_MAIL = False
 
 
 MAX_RETRIES = 5
@@ -38,7 +47,11 @@ class Pynopticon:
     self.cam = cam
 
     self.new_frame_callback = new_frame_callback
+    if youtube is not None and not USE_YT:
+      raise RuntimeError("Argument passed to youtube, but dependencies not installed")
     self.youtube = youtube
+    if sg is not None and not USE_MAIL:
+      raise RuntimeError("Argument passed to sg, but dependencies not installed")
     self.sg = sg
 
   def start(self):
@@ -136,3 +149,4 @@ class Pynopticon:
       return vidid
     
     return None
+
