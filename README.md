@@ -68,10 +68,10 @@ There is also a server that exposes an _http api_, in case if you want to run Py
 
 ```bash
 # without YouTube upload:
-python -m pynopticon
+pynopticon-server
 
 # with YouTube upload:
-CLIENT_SECRETS_FILE="client_secrets.json" python -m pynopticon
+CLIENT_SECRETS_FILE="client_secrets.json" pynopticon-server
 ```
 
 **api:**
